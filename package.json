@@ -1,0 +1,14 @@
+{
+  "name": "intro_api",
+  "version": "1.0.0",
+  "author": "Luís Maron",
+  "type": "module",
+  "description": "Introdução ao backend com node.js",
+  "main": "index.js",
+  "scripts": {},
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "mysql2": "^3.15.3"
+  }
+}
