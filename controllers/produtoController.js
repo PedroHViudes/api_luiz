@@ -5,6 +5,7 @@ const produtoDAO = new ProdutoDAO();
 export class ProdutoController {
 
     /*
+    Feitooooooo
     Antes de inserir, verificar se os dados obrigatórios estão presentes
     */
     async register(req, res) {
@@ -36,23 +37,6 @@ export class ProdutoController {
             return res.status(500).json({ "mensagem": "Erro interno do servidor " });
         }
 
-
-
-
-
-        /*        if (produto.nome == '') {
-            res.status(400).json({ "mensagem": "nome do produto é obrigatório" });
-        }
-        else {
-            try {
-                const retorno = await produtoDAO.register(produto);
-                res.status(retorno.status).json(retorno.body)
-            }
-            catch (e) {
-                res.status(500).json({ "mensagem": "erro ao cadastrar o produto" });
-            }
-
-        }*/
 
     }
 
@@ -104,9 +88,6 @@ export class ProdutoController {
 
 
 
-
-
-
     /*FEITOOOOOO
     Antes de remover, tem que verificar se existe o produto
         Se não existir, deve retornar erro
@@ -135,7 +116,9 @@ export class ProdutoController {
 
 
     }
-
+/*
+feitoo update 
+ */
 
     async update(req, res) {
         const idProduto = req.params.idProduto;
