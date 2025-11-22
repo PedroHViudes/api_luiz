@@ -9,7 +9,38 @@ export class ProdutoController {
     */
     async register(req, res) {
         const produto = req.body;
-        if (produto.nome == '') {
+
+        if (!produto.nome) {
+            return res.status(400).json({ "mensagem": "nome do produto é obrigatório" });
+        }
+        
+        const valornum = parseFloat(produto.valor);
+        
+        if (isNaN(valornum) || valornum <= 0) {
+         
+            return res.status(400).json({ "mensagem": "O preço do produto é obrigatório e deve ser maior que zero." })
+            
+        }
+
+        produto.valor = valornum;
+
+        try {
+            const retorno = await produtoDAO.register(produto)
+
+            return res.status(retorno.status).json(retorno.body);
+
+
+        }
+        catch (error) {
+            console.error("Erro ao cadastrar o produto:", error);
+            return res.status(500).json({ "mensagem": "Erro interno do servidor " });
+        }
+
+
+
+
+
+        /*        if (produto.nome == '') {
             res.status(400).json({ "mensagem": "nome do produto é obrigatório" });
         }
         else {
@@ -21,49 +52,91 @@ export class ProdutoController {
                 res.status(500).json({ "mensagem": "erro ao cadastrar o produto" });
             }
 
-        }
+        }*/
+
     }
 
-
+    /*
+        FEITOOOOOOOOO
+        Se não encontrar, retornar erro
+        */
 
     async findAll(_req, res) {
-        const produtos = await produtoDAO.findAll();
-        res.json(produtos);
+
+        try {
+            const produtos = await produtoDAO.findAll();
+
+            return res.status(produtos.status).json(produtos.body)
+        }
+        catch (error) {
+            console.error("erro ao buscar produtos", error);
+            return res.status(500).json({ mensagem: "Erro interno do servidor." });
+
+        }
+
+
     }
+
     /*
+    FEITOOOOOOOOO
     Se não encontrar, retornar erro
     */
 
 
     async findById(req, res) {
         const idProduto = req.params.idProduto;
-        const produto = await produtoDAO.findById(idProduto);
-        //tratar e retornar 404 caso não exista o registro com o id informado 
-        res.json(produto);
+
+        try {
+            const resultadoDAO = await produtoDAO.findById(idProduto);
+
+            return res.status(resultadoDAO.status).json(resultadoDAO.body)
+
+
+        } catch (error) {
+            console.error("Erro no servidor ao buscar produto:", error);
+            return res.status(500).json({ mensagem: "Erro interno do servidor." });
+        }
+
+
+
+
     }
 
-    /*Antes de remover, tem que verificar se existe o produto
-     Se não existir, deve retornar erro
-     arrumar
-     */
 
 
 
 
-     
+
+    /*FEITOOOOOO
+    Antes de remover, tem que verificar se existe o produto
+        Se não existir, deve retornar erro
+        arrumar
+        */
     async remove(req, res) {
         const idProduto = req.params.idProduto;
-        produtoDAO.remove(idProduto);
 
 
 
-        return res.status(produtoDAO.status).json(produtoDAO.body);    
+
+        try {
+
+            const resultadoDAO = await produtoDAO.remove(idProduto);
+
+            return res.status(resultadoDAO.status).json(resultadoDAO.body);
 
 
-       
+
+        } catch (error) {
+            console.error("Erro no servidor:", error);
+            return res.status(500).json({ mensagem: "Erro no servidor" })
+        }
+
+
+
+
     }
 
-    
+
     async update(req, res) {
         const idProduto = req.params.idProduto;
         const novosDados = req.body;
@@ -83,7 +156,7 @@ export class ProdutoController {
 
         catch (error) {
             console.error("Erro no servidor:", error);
-            return res.status(500).json({mensagem: "Erro no servidor"})
+            return res.status(500).json({ mensagem: "Erro no servidor" })
         }
 
 

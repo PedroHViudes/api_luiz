@@ -7,27 +7,42 @@ export class BaseDAO {
     async remove(id) {
         const sql = `DELETE FROM ${this.nomeTabela} WHERE id = ?`;
         const params = [id];
+
         try {
             const connection = await pool.getConnection();
             const [result] = await connection.execute(sql, params);
-            
 
-               if(result.affectedRows > 0 ){
+
+            if (result.affectedRows > 0) {
                 return {
                     status: 200,
                     body: {
-                        mensagem: `id ${result.id} deletado com sucesso`,
-                        ...id
+                        mensagem: `Registro com ID ${id} deletado com sucesso da tabela ${this.nomeTabela}`,
+
+                    }
+                }
+            } else {
+                return {
+                    status: 404,
+                    body: {
+                        mensagem: `Registro com ${id} não existe`
                     }
                 }
             }
-console.log(result);
-        
-            
-            
+
+
+
+
         }
         catch (e) {
-            console.log("Erro ao alterar o produto", e.message);
+            console.log("Erro ao remover o produto", e.message);
+
+            return {
+                status: 500,
+                body: {
+                    mensagem: "Erro interno do banco de dados ao tentar remover."
+                }
+            }
         }
     }
 
@@ -37,97 +52,139 @@ console.log(result);
         try {
             const connection = await pool.getConnection();
             const [rows] = await connection.execute(sql);
-            return rows;
+            if(rows.length > 0){
+                return{
+                    status: 200,
+                    body: rows
+                }
+                
+            }else{
+                return{
+                    status: 404,
+                    body:{mensagem: "Nenhum registo"}
+                }
+            }
+
+            
         }
         catch (e) {
-            console.log("Erro ao alterar o produto", e.message);
+            console.log("Erro ao buscar o produto", e.message);
+            return{
+                status: 500,
+                body: {mensagem: "Erro interno ao buscar registro."}
+            }
         }
     }
+
+
     async findById(id) {
         const sql = `SELECT * FROM ${this.nomeTabela} WHERE id = ?`;
         const params = [id];
         try {
+            const connection = await pool.getConnection();
             const [rows] = await connection.execute(sql, params);
-        }
-        catch (e) {
-            console.log("Erro ao selecionar o registro", e.message);
-        }
+            connection.release();
+
+            if (rows.length > 0) {
+                return {
+                    status: 200,
+                    body: rows[0] 
+                };
+            } else {
+               
+                return {
+                    status: 404,
+                    body: { mensagem: `Registro com ID ${id} não encontrado.` }
+                };
+            }
+        }   catch(e) {
+        console.error("Erro ao selecionar o dado:", e.message);
+       
+        return {
+            status: 500,
+            body: { mensagem: "Erro interno ao buscar registro." }
+        };
     }
+}
 
     async register(element) {
-        const placeHolder = Object.keys(element).map(() => "?").join(",");
-        const columns = Object.keys(element).join(",");
-        const sql = `INSERT INTO ${this.nomeTabela} (${columns}) VALUES (${placeHolder})`;
-        const params = Object.values(element);
-        try {
-            const connection = await pool.getConnection();
-            const [result] = await connection.execute(sql, params);
-            return {
-                status: 200,
-                body: {
-                    id: result.insertId,
-                    ...element
-                }
+    const placeHolder = Object.keys(element).map(() => "?").join(",");
+    const columns = Object.keys(element).join(",");
+    const sql = `INSERT INTO ${this.nomeTabela} (${columns}) VALUES (${placeHolder})`;
+    const params = Object.values(element);
+
+    console.log("SQL de Inserção Gerado:", sql); 
+    console.log("Parâmetros:", params);
+
+    try {
+        const connection = await pool.getConnection();
+        const [result] = await connection.execute(sql, params);
+        return {
+            status: 200,
+            body: {
+                id: result.insertId,
+                ...element
             }
-        } catch (error) {
-            if (error.code == "ER_BAD_FIELD_ERROR") {
-                return {
-                    status: 400,
-                    body: {
-                        "mensagem": "Dados incorretos."
-                    }
-                }
-            }
-            throw error;
         }
+    } catch (error) {
+        if (error.code == "ER_BAD_FIELD_ERROR") {
+            return {
+                status: 400,
+                body: {
+                    "mensagem": "Dados incorretos."
+                }
+            }
+        }
+        throw error;
     }
+}
 
 
     async update(element) {
-        const id = element.id;
-        const atualizar = { ...element };
-        delete atualizar.id;
+    const id = element.id;
+    const atualizar = { ...element };
+    delete atualizar.id;
 
-        const dados = Object.keys(atualizar).map(coluna => `${coluna} = ?`).join(",");
+    const dados = Object.keys(atualizar).map(coluna => `${coluna} = ?`).join(",");
 
-        const sql = `UPDATE ${this.nomeTabela} SET ${dados} where id = ?`;
-        const params = [...Object.values(atualizar), id];
-        try {
-            const connection = await pool.getConnection();
-            const [result] = await connection.execute(sql, params);
+    const sql = `UPDATE ${this.nomeTabela} SET ${dados} where id = ?`;
+    const params = [...Object.values(atualizar), id];
+    try {
+        const connection = await pool.getConnection();
+        const [result] = await connection.execute(sql, params);
 
 
-            if(result.affectedRows > 0 ){
-                return {
-                    status: 200,
-                    body: {
-                        mensagem: "Produto atualizado com sucesso.",
-                        ...element
-                    }
+        if (result.affectedRows > 0) {
+            return {
+                status: 200,
+                body: {
+                    mensagem: "Produto atualizado com sucesso.",
+                    ...element
                 }
-            }else {
-                 return {
-                    status: 404, 
-                    body: {
-                        mensagem: `produto com ID ${id} não está na tabela ${this.nomeTabela}.`
-                    }
-                }
-            };
-
-        }
-        catch (error) {
-            console.error("Erro ao atualizar o registro:", error.message);
-            if (error.code === "ER_BAD_FIELD_ERROR") {
-                return {
-                    status: 400,
-                    body: {
-                        "mensagem": "Dados incorretos (campo(s) inválido(s) ou faltando)."
-                    }
-                };
             }
-           
-            throw error;
-        }
+        } else {
+            return {
+                status: 404,
+                body: {
+                    mensagem: `produto com ID ${id} não está na tabela ${this.nomeTabela}.`
+                }
+            }
+        };
 
     }
+    catch (error) {
+        console.error("Erro ao atualizar o registro:", error.message);
+        if (error.code === "ER_BAD_FIELD_ERROR") {
+            return {
+                status: 400,
+                body: {
+                    "mensagem": "Dados incorretos (campo(s) inválido(s) ou faltando)."
+                }
+            };
+        }
+
+        throw error;
+    }
+
+}
 }
