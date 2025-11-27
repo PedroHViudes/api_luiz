@@ -5,7 +5,7 @@ export const produtoRouter = express.Router();
 const controller = new ProdutoController();
 
 produtoRouter.get("/", controller.findAll);
-produtoRouter.get("/:idProduto", controller.findById);
-produtoRouter.delete("/:idProduto", controller.remove);
+produtoRouter.get("/:iduser", controller.findById);
+produtoRouter.delete("/:iduser", controller.remove);
 produtoRouter.post("/", controller.register);
-produtoRouter.put("/:idProduto", controller.update);
+produtoRouter.put("/:iduser", controller.update);

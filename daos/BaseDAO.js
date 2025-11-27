@@ -4,12 +4,16 @@ export class BaseDAO {
     constructor(nomeTabela) {
         this.nomeTabela = nomeTabela
     }
+
+
     async remove(id) {
         const sql = `DELETE FROM ${this.nomeTabela} WHERE id = ?`;
         const params = [id];
 
+        let connection;
+
         try {
-            const connection = await pool.getConnection();
+            connection = await pool.getConnection();
             const [result] = await connection.execute(sql, params);
 
 
@@ -44,13 +48,20 @@ export class BaseDAO {
                 }
             }
         }
+        finally {
+
+            if (connection) {
+                connection.release();
+            }
+        }
     }
 
     async findAll() {
         const sql = `SELECT * FROM ${this.nomeTabela}`;
 
+        let connection;
         try {
-            const connection = await pool.getConnection();
+            connection = await pool.getConnection();
             const [rows] = await connection.execute(sql);
             if (rows.length > 0) {
                 return {
@@ -74,16 +85,24 @@ export class BaseDAO {
                 body: { mensagem: "Erro interno ao buscar registro." }
             }
         }
+        finally {
+
+            if (connection) {
+                connection.release();
+            }
+        }
     }
 
 
     async findById(id) {
         const sql = `SELECT * FROM ${this.nomeTabela} WHERE id = ?`;
         const params = [id];
+        let connection;
+
         try {
-            const connection = await pool.getConnection();
+            connection = await pool.getConnection();
             const [rows] = await connection.execute(sql, params);
-            connection.release();
+            
 
             if (rows.length > 0) {
                 return {
@@ -105,6 +124,12 @@ export class BaseDAO {
                 body: { mensagem: "Erro interno ao buscar registro." }
             };
         }
+        finally {
+
+            if (connection) {
+                connection.release();
+            }
+        }
     }
 
     async register(element) {
@@ -113,11 +138,13 @@ export class BaseDAO {
         const sql = `INSERT INTO ${this.nomeTabela} (${columns}) VALUES (${placeHolder})`;
         const params = Object.values(element);
 
+        let connection;
+
         console.log("SQL de Inserção Gerado:", sql);
         console.log("Parâmetros:", params);
 
         try {
-            const connection = await pool.getConnection();
+            connection = await pool.getConnection();
             const [result] = await connection.execute(sql, params);
             return {
                 status: 200,
@@ -136,6 +163,14 @@ export class BaseDAO {
                 }
             }
             throw error;
+
+        }
+
+        finally {
+
+            if (connection) {
+                connection.release();
+            }
         }
     }
 
@@ -145,12 +180,14 @@ export class BaseDAO {
         const atualizar = { ...element };
         delete atualizar.id;
 
+        let connection;
+
         const dados = Object.keys(atualizar).map(coluna => `${coluna} = ?`).join(",");
 
         const sql = `UPDATE ${this.nomeTabela} SET ${dados} where id = ?`;
         const params = [...Object.values(atualizar), id];
         try {
-            const connection = await pool.getConnection();
+            connection = await pool.getConnection();
             const [result] = await connection.execute(sql, params);
 
 
@@ -185,6 +222,12 @@ export class BaseDAO {
 
             throw error;
         }
+        finally {
+
+            if (connection) {
+                connection.release();
+            }
+        }
 
     }
 }
@@ -195,7 +238,7 @@ export class BaseDAO {
 async findById(id) {
         const sql = `SELECT * FROM ${this.nomeTabela} WHERE id = ?`;
         const params = [id];
-        let connection; // Declare a conexão fora do bloco try
+        let connection; 
 
         try {
             connection = await pool.getConnection(); // Atribua a conexão
@@ -221,7 +264,7 @@ async findById(id) {
                 body: { mensagem: "Erro interno ao buscar registro." }
             };
         } finally {
-            // 📝 Melhoria: Garante que a conexão é liberada
+            //  Melhoria: Garante que a conexão é liberada
             if (connection) {
                 connection.release();
             }
